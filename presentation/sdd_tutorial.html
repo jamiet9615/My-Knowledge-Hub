@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>解構 IEEE Std 1016：軟體設計描述 (SDD) 撰寫邏輯與標準實務</title>
+  <style>
+    :root {
+      --bg: #FEF9E3;
+      --card-bg: #FBF7EE;
+      --primary: #2B5B76;
+      --secondary: #5C7A8C;
+      --pink: #F4B3C2;
+      --sky: #8ECFE3;
+      --mint: #7FCDC5;
+      --butter: #F7E5A8;
+      --text: #2B5B76;
+      --border: #E8E2CF;
+      --shadow: 0 8px 24px rgba(43, 91, 118, 0.08);
+      --font: "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      line-height: 1.7;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cute Top Navbar */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 36px;
+      background: #FBF7EE;
+      border-bottom: 2px dashed #E5DEC6;
+      box-shadow: 0 2px 10px rgba(92, 122, 140, 0.05);
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .brand-icon {
+      background: var(--pink);
+      color: #fff;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      box-shadow: 0 3px 8px rgba(244, 179, 194, 0.5);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn {
+      background: #fff;
+      border: 2px solid var(--sky);
+      color: var(--primary);
+      padding: 7px 18px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.92rem;
+      font-weight: 700;
+      transition: all 0.25s ease;
+      box-shadow: 0 3px 8px rgba(142, 207, 227, 0.25);
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--sky);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #ddd;
+    }
+
+    .page-bubble {
+      background: var(--butter);
+      color: var(--primary);
+      padding: 5px 14px;
+      border-radius: 16px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    /* Main Slides Workspace */
+    main {
+      flex: 1;
+      position: relative;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 26px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide {
+      position: absolute;
+      top: 24px; bottom: 24px; left: 36px; right: 36px;
+      display: none;
+      flex-direction: column;
+      justify-content: flex-start;
+      background: var(--card-bg);
+      border: 2px solid #EFE8D6;
+      border-radius: 24px;
+      padding: 38px 46px;
+      box-shadow: var(--shadow);
+      overflow-y: auto;
+      animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.97) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Cute Header Components */
+    .badge-pill {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: var(--butter);
+      color: var(--primary);
+      margin-bottom: 12px;
+      border: 1px solid #ebd793;
+    }
+
+    .slide-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    /* Cute Cards Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      margin-top: 8px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 8px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .cute-card {
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 4px 14px rgba(43, 91, 118, 0.05);
+      position: relative;
+      transition: all 0.25s ease;
+    }
+
+    .cute-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(43, 91, 118, 0.1);
+      border-color: var(--sky);
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+    }
+
+    .cute-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cute-desc {
+      font-size: 0.95rem;
+      color: var(--secondary);
+      line-height: 1.65;
+    }
+
+    /* Color Accented Cards */
+    .card-pink { border-top: 6px solid var(--pink); }
+    .card-sky { border-top: 6px solid var(--sky); }
+    .card-mint { border-top: 6px solid var(--mint); }
+    .card-butter { border-top: 6px solid #e0c96c; }
+
+    /* Sticky Note Style */
+    .sticky-note {
+      background: #FFFDF4;
+      border: 2px dashed #E5DEC6;
+      border-radius: 16px;
+      padding: 18px 22px;
+      margin-top: 14px;
+    }
+
+    /* Cover Slide */
+    .cover-slide {
+      text-align: center;
+      justify-content: center !important;
+      align-items: center;
+      background: radial-gradient(circle at center, #FFFDF8 0%, #FBF7EE 100%);
+    }
+
+    .cover-title {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+
+    .cover-subtitle {
+      font-size: 1.35rem;
+      color: var(--secondary);
+      font-weight: 600;
+      margin-bottom: 28px;
+    }
+
+    .cute-pill-box {
+      display: inline-flex;
+      gap: 10px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .cute-tag {
+      background: var(--sky);
+      color: #fff;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(142, 207, 227, 0.4);
+    }
+
+    .cute-tag.pink { background: var(--pink); box-shadow: 0 2px 6px rgba(244, 179, 194, 0.4); }
+    .cute-tag.mint { background: var(--mint); box-shadow: 0 2px 6px rgba(127, 205, 197, 0.4); }
+
+    .cover-meta {
+      background: #ffffff;
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 16px 32px;
+      display: inline-block;
+      text-align: left;
+      font-size: 0.95rem;
+      color: var(--secondary);
+      line-height: 1.8;
+      box-shadow: 0 6px 18px rgba(43, 91, 118, 0.06);
+    }
+
+    .cover-meta strong {
+      color: var(--primary);
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      background: #fff;
+      margin-top: 10px;
+      font-size: 0.92rem;
+    }
+
+    th, td {
+      padding: 12px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: #F4EEDC;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #FDFAF2;
+    }
+
+    ul, ol {
+      padding-left: 22px;
+      color: var(--secondary);
+      font-size: 0.95rem;
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    li strong {
+      color: var(--primary);
+    }
+
+    /* Cute Footer */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 36px;
+      background: #FBF7EE;
+      border-top: 2px solid #EFE8D6;
+      font-size: 0.88rem;
+      color: var(--secondary);
+    }
+
+    .progress-bar-container {
+      width: 280px;
+      height: 8px;
+      background: #EAE3D1;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--sky), var(--mint));
+      border-radius: 10px;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">📐</div>
+      <span>IEEE 1016 軟體設計描述 (SDD) 教學指南</span>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prevBtn">◀ 上一頁</button>
+      <span class="page-bubble" id="pageNumber">01 / 11</span>
+      <button class="btn" id="nextBtn">下一頁 ▶</button>
+    </div>
+  </header>
+
+  <!-- Main Slides -->
+  <main>
+
+    <!-- Slide 1: Cover -->
+    <section class="slide cover-slide active" data-index="1">
+      <div class="cute-pill-box">
+        <span class="cute-tag">軟體工程概念課</span>
+        <span class="cute-tag pink">IEEE Std 1016 標準指引</span>
+        <span class="cute-tag mint">從架構到實作</span>
+      </div>
+      <h1 class="cover-title">解構 IEEE Std 1016<br>軟體設計描述 (SDD)</h1>
+      <div class="cover-subtitle">打造系統藍圖的邏輯、視圖與黃金原則 ✏️</div>
+      <div class="cover-meta">
+        <div><strong>受眾對象：</strong> 課堂老師與同學們</div>
+        <div><strong>核心主題：</strong> 軟體需求轉譯、設計實體 10 大屬性、4 大設計視圖</div>
+        <div><strong>實務案例：</strong> 《K33p_1t_s1mpl3》文字解謎 RPG 專題對照</div>
+        <div><strong>參考標準：</strong> IEEE Std 1016-1998 / 1016-2009 國際規範</div>
+      </div>
+    </section>
+
+    <!-- Slide 2: Why SDD -->
+    <section class="slide" data-index="2">
+      <div class="badge-pill">CHAPTER 01 :: 核心出發點</div>
+      <h2 class="slide-title">🌱 為什麼需要寫 SDD？從 What 走進 How</h2>
+      <div class="grid-3">
+        <div class="cute-card card-sky">
+          <div class="card-icon">📋</div>
+          <div class="cute-title">SRS (需求規格書)</div>
+          <div class="cute-desc">
+            描述<strong>「系統該做什麼」(What)</strong>。<br>
+            列出功能需求（F-01）、非功能品質（NF-01），這是給客戶與使用者的承諾。
+          </div>
+        </div>
+        <div class="cute-card card-pink">
+          <div class="card-icon">🌉</div>
+          <div class="cute-title">SDD (設計描述書)</div>
+          <div class="cute-desc">
+            橋接架構<strong>「系統如何建構」(How)</strong>！<br>
+            把需求轉譯成元件模組、資料字典、狀態機與演算法，是工程師的施工藍圖。
+          </div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="card-icon">💻</div>
+          <div class="cute-title">Code (程式實作)</div>
+          <div class="cute-desc">
+            最終交付<strong>「具體運行的軟體」</strong>。<br>
+            若沒有 SDD 直接寫 Code，容易陷入隨意拼裝、模組耦合、除錯與維護的災難。
+          </div>
+        </div>
+      </div>
+      <div class="sticky-note">
+        <div class="cute-title" style="margin-bottom: 4px;">💡 一句話總結 SDD 的價值：</div>
+        <div class="cute-desc">
+          「好的 SDD 讓不同的工程師看著同一份藍圖，能蓋出穩固、可獨立測試且能與 SRS 雙向對齊的軟體大廈。」
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 3: Design Entity -->
+    <section class="slide" data-index="3">
+      <div class="badge-pill">CHAPTER 02 :: 基本單位</div>
+      <h2 class="slide-title">🧱 SDD 的靈魂：設計實體 (Design Entity)</h2>
+      <div class="grid-2">
+        <div class="cute-card card-butter">
+          <div class="card-icon">🧩</div>
+          <div class="cute-title">什麼是設計實體？</div>
+          <div class="cute-desc">
+            依據 IEEE 1016 定義，<strong>設計實體 (Design Entity)</strong> 是系統經由需求分解後的獨立元件：
+            <ul>
+              <li>具有<strong>獨立結構與功能</strong>，能被單獨命名與參照。</li>
+              <li>實體型態多樣：可以是一個<strong>子系統</strong>、<strong>前端模組</strong>、<strong>類別 (Class)</strong>、<strong>演算法程序</strong>，或一個<strong>資料庫 (Data Store)</strong>。</li>
+              <li>目標：讓每一塊積木都能<strong>獨立實作、獨立測試、獨立置換</strong>（高內聚、低耦合）。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="card-icon">📐</div>
+          <div class="cute-title">資訊模型 (Information Model)</div>
+          <div class="cute-desc">
+            IEEE 1016 認為軟體設計本質上就是一套<strong>實體-屬性 (Entity-Attribute)</strong> 模型：
+            <ul>
+              <li>系統由多個<strong>設計實體</strong>組成。</li>
+              <li>每個實體透過一組<strong>標準屬性 (Attributes)</strong> 來回答：「它是誰？」、「它做什麼？」、「它依賴誰？」與「如何操作它？」。</li>
+              <li>當所有實體的屬性都被清楚描述時，這份 SDD 即達到<strong>結構完備</strong>。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 4: 10 Attributes -->
+    <section class="slide" data-index="4">
+      <div class="badge-pill">CHAPTER 03 :: IEEE 1016-1998</div>
+      <h2 class="slide-title">✨ 設計實體的 10 大黃金屬性 (Attributes)</h2>
+      <div class="cute-desc" style="margin-bottom: 12px;">
+        標準規定每份完整的 SDD 必須回答關於設計實體的 10 個核心問題：
+      </div>
+      <div class="grid-3">
+        <div class="cute-card card-pink">
+          <div class="cute-title">1. 識別 (Identification)</div>
+          <div class="cute-desc">唯一的名稱與識別代碼，全局不可重複。</div>
+        </div>
+        <div class="cute-card card-pink">
+          <div class="cute-title">2. 類型 (Type)</div>
+          <div class="cute-desc">實體性質（如模組、狀態機、資料儲存、類別）。</div>
+        </div>
+        <div class="cute-card card-pink">
+          <div class="cute-title">3. 目的 (Purpose)</div>
+          <div class="cute-desc">為何存在？對應 SRS 的哪一項需求。</div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="cute-title">4. 功能 (Function)</div>
+          <div class="cute-desc">它做什麼轉譯？輸入進來後輸出什麼。</div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="cute-title">5. 從屬 (Subordinates)</div>
+          <div class="cute-desc">它包含哪些子元件？（Composed of 關係）。</div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="cute-title">6. 相依 (Dependencies)</div>
+          <div class="cute-desc">它依賴或呼叫誰？（Uses 先後序關係）。</div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="cute-title">7. 介面 (Interface)</div>
+          <div class="cute-desc">外部如何與它互動？方法、參數格式與錯誤碼。</div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="cute-title">8. 資源 (Resources)</div>
+          <div class="cute-desc">所需的外部硬體、記憶體、LocalStorage 或 API。</div>
+        </div>
+        <div class="cute-card card-butter">
+          <div class="cute-title">9. 處理邏輯 (Processing)</div>
+          <div class="cute-desc">內部演算法、邏輯分支、正規比對與防呆。</div>
+        </div>
+      </div>
+      <div class="sticky-note" style="margin-top: 12px; padding: 12px 18px;">
+        <strong>10. 資料 (Data)：</strong>實體內部的資料結構、儲存格式、型態限制與預設值（例如 GameState JSON）。
+      </div>
+    </section>
+
+    <!-- Slide 5: 4 Design Views -->
+    <section class="slide" data-index="5">
+      <div class="badge-pill">CHAPTER 04 :: 核心方法論</div>
+      <h2 class="slide-title">👓 四大經典設計視圖 (Design Views)</h2>
+      <div class="cute-desc" style="margin-bottom: 12px;">
+        沒有人能用單一眼光看透整個系統！IEEE 1016 將 10 大屬性切分成四大專屬視圖：
+      </div>
+      <div class="grid-4">
+        <div class="cute-card card-pink">
+          <div class="card-icon">🗂️</div>
+          <div class="cute-title">分解視圖 (Decomposition View)</div>
+          <div class="cute-desc">
+            <strong>關注重點：</strong>系統層級劃分與模組清單。<br>
+            <strong>涵蓋屬性：</strong>識別、類型、目的、功能、從屬。<br>
+            <strong>適合讀者：</strong>專案經理、系統架構師、新進成員。
+          </div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="card-icon">🔗</div>
+          <div class="cute-title">相依視圖 (Dependency View)</div>
+          <div class="cute-desc">
+            <strong>關注重點：</strong>模組之間的呼叫關係、執行順序與資源依賴。<br>
+            <strong>涵蓋屬性：</strong>識別、類型、相依性、資源。<br>
+            <strong>適合讀者：</strong>架構評審、系統整合人員、測試規劃者。
+          </div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="card-icon">🔌</div>
+          <div class="cute-title">介面視圖 (Interface View)</div>
+          <div class="cute-desc">
+            <strong>關注重點：</strong>外部如何呼叫、參數協定、通訊格式與錯誤回饋。<br>
+            <strong>涵蓋屬性：</strong>識別、功能、介面規格。<br>
+            <strong>適合讀者：</strong>協同開發組員（前後端對接、模組整合）。
+          </div>
+        </div>
+        <div class="cute-card card-butter">
+          <div class="card-icon">⚙️</div>
+          <div class="cute-title">詳細設計視圖 (Detail Design View)</div>
+          <div class="cute-desc">
+            <strong>關注重點：</strong>演算法步驟、資料字典、正規表達式與例外保護。<br>
+            <strong>涵蓋屬性：</strong>識別、處理邏輯 (Processing)、資料 (Data)。<br>
+            <strong>適合讀者：</strong>具體負責撰寫程式碼的工程師。
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 6: Modern Evolution -->
+    <section class="slide" data-index="6">
+      <div class="badge-pill">CHAPTER 05 :: 標準演進</div>
+      <h2 class="slide-title">🚀 現代演進：IEEE 1016-2009 與架構視點</h2>
+      <div class="grid-2">
+        <div class="cute-card card-sky">
+          <div class="card-icon">🏛️</div>
+          <div class="cute-title">全面對齊 ISO/IEC 42010</div>
+          <div class="cute-desc">
+            2009 年版本進行了現代化重構，不再僅限於傳統功能分解，轉為以<strong>「利害關係人關注點 (Concerns)」</strong>為核心：
+            <ul>
+              <li><strong>Stakeholders</strong>：客戶、架構師、開發者、資安稽核員。</li>
+              <li><strong>Viewpoint (視點)</strong>：定義觀察系統的角度與建模約定。</li>
+              <li><strong>View (視圖)</strong>：依視點描繪出來的具體架構表現。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="card-icon">🧭</div>
+          <div class="cute-title">現代視點體系 (Viewpoints)</div>
+          <div class="cute-desc">
+            標準擴充出更彈性的視點集合：
+            <ul>
+              <li><strong>Context Viewpoint</strong>：系統與外圍邊界。</li>
+              <li><strong>Composition Viewpoint</strong>：組件階層封裝。</li>
+              <li><strong>Logical & Information</strong>：物件類別與資料模型。</li>
+              <li><strong>Patterns Viewpoint</strong>：所採用的架構模式（MVC、狀態機等）。</li>
+              <li><strong>State Dynamics</strong>：動態生命週期與狀態切換。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="sticky-note">
+        <strong>💡 實務選用建議：</strong>
+        課堂作業或中小型系統，1998 版的「10 大實體屬性 + 4 大視圖」清晰易寫；而大型複雜微服務或物件導向專案，則推薦採用 2009 版的多重視點體系。
+      </div>
+    </section>
+
+    <!-- Slide 7: Case Study -->
+    <section class="slide" data-index="7">
+      <div class="badge-pill">CHAPTER 06 :: 實務對照</div>
+      <h2 class="slide-title">🎯 專案實務對照：以《K33p_1t_s1mpl3》為例</h2>
+      <div class="cute-desc" style="margin-bottom: 10px;">
+        看理論不如看實例！第九組網頁文字解謎 RPG 如何依循 IEEE 1016 落地：
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>IEEE 1016 設計視圖</th>
+            <th>第九組 SDD 實作內容</th>
+            <th>解決的工程挑戰</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>分解視圖 (Decomposition)</strong></td>
+            <td>劃分 <code>parser.js</code>、<code>state.js</code>、<code>ui.js</code>、<code>errorHandler.js</code>、<code>audio.js</code></td>
+            <td>純前端 SPA 高度解耦，5 位組員清楚分工（NF-05）</td>
+          </tr>
+          <tr>
+            <td><strong>相依與介面視圖</strong></td>
+            <td>單次指令事件驅動流：<code>parseCommand()</code> ➔ <code>updateState()</code> ➔ <code>LocalStorage</code></td>
+            <td>規範模組通訊合約，達成 0.1 秒極速同步響應（NF-01）</td>
+          </tr>
+          <tr>
+            <td><strong>詳細設計 (演算法)</strong></td>
+            <td>正則表達式語法匹配、多人指令嚴格遞增排序、符文房號連線判定</td>
+            <td>確保複雜劇情指令精準觸發，防止玩家無效輸入卡死</td>
+          </tr>
+          <tr>
+            <td><strong>詳細設計 (資料設計)</strong></td>
+            <td>制定 <code>GameState</code> 與 LocalStorage JSON 資料字典，加入 Schema 防損毀保護</td>
+            <td>無伺服器下保障本機存檔可靠性與玩家隱私（NF-06, NF-08）</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Slide 8: Do's and Don'ts -->
+    <section class="slide" data-index="8">
+      <div class="badge-pill">CHAPTER 07 :: 撰寫守則</div>
+      <h2 class="slide-title">💡 SDD 撰寫的三大黃金原則與避坑指南</h2>
+      <div class="grid-2">
+        <div class="cute-card card-mint">
+          <div class="card-icon">✅</div>
+          <div class="cute-title">推薦做法 (Best Practices)</div>
+          <ul>
+            <li><strong>適度抽象 (Right Abstraction)</strong>：專注於介面協定、資料結構與演算法流程，而非整篇貼上 JavaScript 原始碼。</li>
+            <li><strong>雙向追溯 (Traceability)</strong>：每個模組必須標註支援的 SRS 功能需求條目（如 F-01）。</li>
+            <li><strong>明確標記未定事項</strong>：若與 SRS 有出入或尚待確認（如彩蛋指令），明確在附錄列出。</li>
+          </ul>
+        </div>
+        <div class="cute-card card-pink">
+          <div class="card-icon">❌</div>
+          <div class="cute-title">常見地雷 (Common Pitfalls)</div>
+          <ul>
+            <li><strong>把 SDD 當成程式碼貼上簿</strong>：貼滿未抽象的語法，導致規格一改整份文件作廢。</li>
+            <li><strong>遺漏相依性說明</strong>：只畫了方塊圖，卻沒寫各方塊如何傳遞參數與處理錯誤。</li>
+            <li><strong>脫離 SRS 幻想架構</strong>：設計了 SRS 根本不需要的複雜微服務或額外後端。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 9: 5 Steps Guide -->
+    <section class="slide" data-index="9">
+      <div class="badge-pill">CHAPTER 08 :: 步驟實踐</div>
+      <h2 class="slide-title">🐾 新手也能上手的 SDD 五步撰寫指引</h2>
+      <div class="grid-3">
+        <div class="cute-card card-butter">
+          <div class="cute-title">STEP 1. 劃定範疇</div>
+          <div class="cute-desc">明確系統邊界、技術棧（Tech Stack）與不在範圍內的項目（Out of Scope）。</div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="cute-title">STEP 2. 模組切分</div>
+          <div class="cute-desc">繪製分解視圖，將系統拆解為數個獨立實體，並分配給組員認領責任。</div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="cute-title">STEP 3. 定義介面</div>
+          <div class="cute-desc">規範函式名稱、輸入參數、回傳值格式與例外錯誤代碼（介面視圖）。</div>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top: 14px;">
+        <div class="cute-card card-pink">
+          <div class="cute-title">STEP 4. 資料字典與演算法</div>
+          <div class="cute-desc">設計核心資料庫 / JSON 儲存模型，並撰寫關鍵邏輯虛擬碼（詳細設計視圖）。</div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="cute-title">STEP 5. 繪製追溯矩陣 (RTM)</div>
+          <div class="cute-desc">交叉檢查 SRS 每一條需求是否有對應模組負責，確保 100% 需求不漏接！</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 10: Summary -->
+    <section class="slide" data-index="10">
+      <div class="badge-pill">CHAPTER 09 :: 總結</div>
+      <h2 class="slide-title">🌈 總結：讓設計文件成為團隊的超級英雄</h2>
+      <div class="grid-3">
+        <div class="cute-card card-pink">
+          <div class="card-icon">🤝</div>
+          <div class="cute-title">溝通共識</div>
+          <div class="cute-desc">消除成員之間的認知誤差，前後端與測試對齊同一個介面合約。</div>
+        </div>
+        <div class="cute-card card-sky">
+          <div class="card-icon">🛡️</div>
+          <div class="cute-title">品質保障</div>
+          <div class="cute-desc">防呆、效能與存檔可靠性在寫 Code 之前就已完成架構驗證。</div>
+        </div>
+        <div class="cute-card card-mint">
+          <div class="card-icon">📚</div>
+          <div class="cute-title">知識積累</div>
+          <div class="cute-desc">維護者與新進夥伴能迅速掌握系統全局，不再盲人摸象。</div>
+        </div>
+      </div>
+      <div class="sticky-note" style="text-align: center; margin-top: 24px; padding: 20px;">
+        <div style="font-size: 1.15rem; font-weight: 800; color: var(--primary);">
+          ✨ 寫好 SDD，軟體開發從此告別盲目通宵除錯！
+        </div>
+        <div style="font-size: 0.95rem; color: var(--secondary); margin-top: 6px;">
+          感謝各位老師與同學的聆聽，祝大家期末專題順利完工 🎉
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 11: References -->
+    <section class="slide" data-index="11">
+      <div class="badge-pill">REFERENCES :: 參考文獻</div>
+      <h2 class="slide-title">📚 來源清單 (References)</h2>
+      <div class="cute-desc" style="margin-bottom: 16px;">
+        本簡報之所有標準條文、視圖規範與案例對照，均具有正式出處：
+      </div>
+      <div class="cute-card" style="line-height: 2.1;">
+        <ol>
+          <li><strong>IEEE Computer Society</strong>（1998）。IEEE Std 1016-1998, IEEE Recommended Practice for Software Design Descriptions。[IEEE 國際標準]</li>
+          <li><strong>IEEE Computer Society</strong>（2009）。IEEE Std 1016-2009, IEEE Standard for Information Technology -- Systems Design -- Software Design Descriptions。[IEEE 國際標準]</li>
+          <li><strong>輔仁大學人工智慧與資訊安全學士學位學程第九組</strong>（2026）。《K33p_1t_s1mpl3》軟體設計文件 (SDD) (編號：SDD-2026-001-1 v1.1)。[組別實例]</li>
+          <li><strong>輔仁大學人工智慧與資訊安全學士學位學程第九組</strong>（2026）。《K33p_1t_s1mpl3》系統需求規格書 (SRS) (編號：SRS-2026-001-1 v1.0)。[組別實例]</li>
+        </ol>
+      </div>
+      <div style="margin-top: 20px; text-align: center; color: var(--primary); font-weight: 700;">
+        🌸 My Knowledge Hub · 軟體工程通用教學模組 🌸
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div>軟體工程概論 :: IEEE Std 1016 SDD 教學講義</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div>導覽提示：[← / P] 上一頁・[→ / N / Space] 下一頁</div>
+  </footer>
+
+  <!-- Script for Navigation -->
+  <script>
+    (function() {
+      let currentSlide = 1;
+      const slides = document.querySelectorAll('.slide');
+      const totalSlides = slides.length;
+      const pageNumberEl = document.getElementById('pageNumber');
+      const progressBarEl = document.getElementById('progressBar');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      function updateSlide(newIndex) {
+        if (newIndex < 1) newIndex = 1;
+        if (newIndex > totalSlides) newIndex = totalSlides;
+        
+        currentSlide = newIndex;
+        slides.forEach(slide => {
+          const idx = parseInt(slide.getAttribute('data-index'), 10);
+          if (idx === currentSlide) {
+            slide.classList.add('active');
+          } else {
+            slide.classList.remove('active');
+          }
+        });
+
+        // Update UI
+        pageNumberEl.textContent = `${String(currentSlide).padStart(2, '0')} / ${String(totalSlides).padStart(2, '0')}`;
+        const pct = ((currentSlide - 1) / (totalSlides - 1)) * 100;
+        progressBarEl.style.width = `${pct}%`;
+
+        prevBtn.disabled = (currentSlide === 1);
+        nextBtn.disabled = (currentSlide === totalSlides);
+      }
+
+      prevBtn.addEventListener('click', () => updateSlide(currentSlide - 1));
+      nextBtn.addEventListener('click', () => updateSlide(currentSlide + 1));
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key.toLowerCase() === 'n') {
+          updateSlide(currentSlide + 1);
+        } else if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'p') {
+          updateSlide(currentSlide - 1);
+        }
+      });
+
+      // Init
+      updateSlide(1);
+    })();
+  </script>
+</body>
+</html>
