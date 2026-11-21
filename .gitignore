@@ -1,0 +1,26 @@
+# OS / 系統檔
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 編輯器 / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Antigravity Agent 工作檔（非專案內容）
+.gemini/
+
+# 暫存 / 備份
+*.tmp
+*.bak
+~$*
+
+# Python 腳本（若未來加入）
+__pycache__/
+*.pyc
+*.pyo
+
+# 瀏覽器快取或測試產出（選用，可移除此行）
+# presentation/*.cache

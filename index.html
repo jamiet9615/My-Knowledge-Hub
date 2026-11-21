@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Knowledge Hub — 軟體工程知識庫與簡報入口</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      max-width: 960px;
+      margin: 5vh auto;
+      padding: 0 24px;
+      background: #0d1117;
+      color: #e6edf3;
+      line-height: 1.8;
+    }
+    .panel {
+      background: #161b22;
+      border: 1px solid #30363d;
+      padding: 38px 44px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    h1 {
+      color: #58a6ff;
+      margin-bottom: 6px;
+      font-size: 2.1rem;
+    }
+    .subtitle {
+      color: #8b949e;
+      margin-bottom: 24px;
+      font-size: 1.05rem;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 24px 0;
+    }
+    .card {
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.25s ease;
+    }
+    .card:hover {
+      border-color: #58a6ff;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .card h3 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+    }
+    .card p {
+      font-size: 0.93rem;
+      color: #8b949e;
+      line-height: 1.6;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 14px;
+      color: #ffffff;
+      padding: 9px 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+    .btn-green {
+      background: #238636;
+    }
+    .btn-green:hover {
+      background: #2ea043;
+    }
+    .btn-warm {
+      background: #c8812c;
+    }
+    .btn-warm:hover {
+      background: #db933d;
+    }
+    .btn-secondary {
+      background: #30363d;
+    }
+    .btn-secondary:hover {
+      background: #3c444d;
+    }
+    .meta-list {
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid #30363d;
+      font-size: 0.9rem;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>My Knowledge Hub</h1>
+    <div class="subtitle">通用型個人 AI 知識庫（Karpathy LLM Wiki 方法論實踐）</div>
+    <p>
+      本知識庫透過 Ingest 流程吸納 7 份關鍵原始來源，編譯為互聯且可追溯的 Markdown Wiki，並依需求輸出兩種不同風格與模式的 HTML 簡報：
+    </p>
+
+    <div class="card-grid">
+      <!-- Card 1: Team Report (Mode B) -->
+      <div class="card">
+        <div>
+          <h3 style="color: #7ee787;">💻 模式 B：第九組專題成果報告</h3>
+          <p>
+            以第九組《K33p_1t_s1mpl3》網頁文字解謎 RPG 為主題，展示五模組架構、狀態機、指令解析正則演算法、LocalStorage 資料模型與 RTM 矩陣。
+          </p>
+          <div style="font-size: 0.8rem; color: #7ee787; font-family: monospace; margin-top: 6px;">[風格] 黑綠極簡 Terminal 風格</div>
+        </div>
+        <a class="btn btn-green" href="presentation/index.html">開啟組別 SDD 專題簡報 ▶</a>
+      </div>
+
+      <!-- Card 2: Educational Tutorial (Mode A) -->
+      <div class="card">
+        <div>
+          <h3 style="color: #F7E5A8;">🌸 模式 A：IEEE 1016 教學指南</h3>
+          <p>
+            針對老師與同學設計的觀念教學，解構 SDD 核心理念、設計實體 10 大屬性、4 大設計視圖、ISO/IEC 42010 演進與五步撰寫法則。
+          </p>
+          <div style="font-size: 0.8rem; color: #F4B3C2; font-family: monospace; margin-top: 6px;">[風格] 清新暖色手帳可愛風格</div>
+        </div>
+        <a class="btn btn-warm" href="presentation/sdd_tutorial.html">開啟 SDD 撰寫邏輯教學簡報 ▶</a>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 10px;">
+      <a class="btn btn-secondary" href="wiki/index.md" style="display: inline-block; width: auto; padding: 8px 24px;">📚 瀏覽完整 Wiki 知識庫目錄 ↗</a>
+    </div>
+
+    <div class="meta-list">
+      <div><strong>知識庫核心來源：</strong> IEEE Std 830 / 1016 / 829 規範、第九組 PEP / SRS / SDD 專案文件</div>
+      <div><strong>簡報大綱記錄：</strong> <code>slide_notes/se_team_sdd_outline.md</code> 與 <code>slide_notes/se_ieee1016_tutorial_outline.md</code></div>
+      <div><strong>維護紀錄：</strong> <code>wiki/log.md</code></div>
+    </div>
+  </div>
+</body>
+</html>
